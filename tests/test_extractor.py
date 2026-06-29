@@ -1,23 +1,23 @@
 from parser.evtx_parser import read_evtx
-from parser.event_extractor import extract_event
+from parser.xml_extractor import extract_events
 
 
 def main():
-    print("===== TEST EXTRACTOR =====")
+    print("===== TEST XML EXTRACTOR =====")
 
     file_path = "data/sample_logs/Security.evtx"
 
-    # Read only one event
-    events = read_evtx(file_path, max_events=1)
+    # Read the first 10 events
+    xml_events = read_evtx(file_path, max_events=10)
 
-    print(f"Events Read: {len(events)}")
+    # Convert XML events into dictionaries
+    structured_events = extract_events(xml_events)
 
-    # Extract fields from the first event
-    structured_event = extract_event(events[0])
+    print(f"\nTotal Structured Events: {len(structured_events)}\n")
 
-    print("\nExtracted Event:\n")
+    print("First Structured Event:\n")
 
-    for key, value in structured_event.items():
+    for key, value in structured_events[0].items():
         if key != "raw_xml":
             print(f"{key}: {value}")
 
