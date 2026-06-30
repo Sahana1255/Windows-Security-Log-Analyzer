@@ -1,17 +1,11 @@
 """
-Dashboard Statistics Module
+Statistics Module
 
-Calculates statistics used by the Streamlit dashboard.
+Calculates dashboard statistics.
 
 Author: Your Name
 Project: Windows Security Log Analyzer
 """
-
-from detection.failed_logins import detect_failed_logins
-from detection.successful_logins import detect_successful_logins
-from detection.account_creation import detect_account_creation
-from detection.password_changes import detect_password_changes
-from detection.privilege_escalation import detect_privilege_escalation
 
 
 def get_statistics(events):
@@ -21,32 +15,60 @@ def get_statistics(events):
     Parameters
     ----------
     events : list
-        List of structured event dictionaries.
+        Structured security events.
 
     Returns
     -------
     dict
-        Dictionary containing dashboard statistics.
+        Dashboard statistics.
     """
 
-    successful = detect_successful_logins(events)
-    failed = detect_failed_logins(events)
-    created = detect_account_creation(events)
-    password = detect_password_changes(events)
-    privilege = detect_privilege_escalation(events)
-
-    return {
-
+    stats = {
         "total_events": len(events),
-
-        "successful_logins": len(successful),
-
-        "failed_logins": len(failed),
-
-        "account_creations": len(created),
-
-        "password_changes": len(password),
-
-        "privilege_escalations": len(privilege)
-
+        "successful_logins": 0,
+        "failed_logins": 0,
+        "account_creations": 0,
+        "password_changes": 0,
+        "privilege_escalations": 0,
+        "account_lockouts": 0,
+        "account_deletions": 0,
+        "group_changes": 0
     }
+
+    for event in events:
+
+        event_id = event["event_id"]
+
+        # Successful Login
+        if event_id == 4624:
+            stats["successful_logins"] += 1
+
+        # Failed Login
+        elif event_id == 4625:
+            stats["failed_logins"] += 1
+
+        # Account Created
+        elif event_id == 4720:
+            stats["account_creations"] += 1
+
+        # Password Changed
+        elif event_id == 4723:
+            stats["password_changes"] += 1
+
+        # Special Privileges Assigned
+        elif event_id == 4672:
+            stats["privilege_escalations"] += 1
+
+        # Account Locked
+        elif event_id == 4740:
+            stats["account_lockouts"] += 1
+
+        # Account Deleted
+        elif event_id == 4726:
+            stats["account_deletions"] += 1
+
+        # Security Group Membership Changed
+        elif event_id in [4728, 4732, 4756]:
+            stats["group_changes"] += 1
+
+    return stats

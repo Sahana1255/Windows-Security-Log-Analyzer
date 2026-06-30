@@ -6,6 +6,8 @@ Author: Your Name
 Project: Windows Security Log Analyzer
 """
 
+from datetime import datetime
+
 import streamlit as st
 
 from parser.evtx_parser import read_evtx
@@ -14,10 +16,26 @@ from parser.xml_extractor import extract_events
 from dashboard.statistics import get_statistics
 from dashboard.sidebar import create_sidebar
 from dashboard.uploader import save_uploaded_file
+from dashboard.theme import load_theme
+
+from dashboard.filters import filter_events
+from dashboard.search import search_events
+
+from dashboard.cards import show_kpi_cards
 from dashboard.charts import (
     show_event_distribution,
     show_event_timeline
 )
+from dashboard.alerts import show_alerts
+from dashboard.summary import show_summary
+from dashboard.table import show_event_table
+from dashboard.investigation import show_event_details
+
+from dashboard.export import show_export
+from dashboard.pdf_button import show_pdf_button
+
+from dashboard.about import show_about
+from dashboard.footer import show_footer
 
 
 # ---------------------------------------------------
@@ -31,6 +49,12 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------
+# Load Theme
+# ---------------------------------------------------
+
+load_theme()
+
+# ---------------------------------------------------
 # Sidebar
 # ---------------------------------------------------
 
@@ -41,34 +65,25 @@ uploaded_file, max_events, analyze = create_sidebar()
 # ---------------------------------------------------
 
 structured_events = []
-
-stats = {
-    "total_events": 0,
-    "successful_logins": 0,
-    "failed_logins": 0,
-    "account_creations": 0,
-    "privilege_escalations": 0
-}
-
-# ---------------------------------------------------
-# Load EVTX File
-# ---------------------------------------------------
+stats = {}
 
 if max_events == "All":
     max_events = None
 
-# Default file
 file_path = "data/sample_logs/Security.evtx"
 
 # ---------------------------------------------------
-# Analyze Uploaded or Sample Log
+# Load Uploaded File
+# ---------------------------------------------------
+
+if analyze and uploaded_file is not None:
+    file_path = save_uploaded_file(uploaded_file)
+
+# ---------------------------------------------------
+# Read EVTX
 # ---------------------------------------------------
 
 if analyze:
-
-    # Save uploaded file only when Analyze is clicked
-    if uploaded_file is not None:
-        file_path = save_uploaded_file(uploaded_file)
 
     with st.spinner("Analyzing Windows Security Log..."):
 
@@ -77,16 +92,6 @@ if analyze:
             max_events=max_events
         )
 
-        structured_events = extract_events(xml_events)
-
-        stats = get_statistics(structured_events)
-
-    st.success("Analysis Complete")
-
-# ---------------------------------------------------
-# First Page Load
-# ---------------------------------------------------
-
 else:
 
     xml_events = read_evtx(
@@ -94,42 +99,60 @@ else:
         max_events=max_events
     )
 
-    structured_events = extract_events(xml_events)
+structured_events = extract_events(xml_events)
 
-    stats = get_statistics(structured_events)
+# ---------------------------------------------------
+# Investigation Tools
+# ---------------------------------------------------
+
+structured_events = search_events(
+    filter_events(structured_events)
+)
+
+stats = get_statistics(structured_events)
+
+if analyze:
+    st.success("Analysis Complete")
 
 # ---------------------------------------------------
 # Dashboard Header
 # ---------------------------------------------------
 
-st.title("🛡️ Windows Security Log Analyzer")
+st.title("🛡 Windows Security Log Analyzer")
 
 st.caption(
-    "Python-based Windows Security Event Monitoring Dashboard"
+    f"SOC Investigation Dashboard • "
+    f"Last Analysis: "
+    f"{datetime.now():%d %B %Y %H:%M:%S}"
 )
 
 st.divider()
 
 # ---------------------------------------------------
-# Statistics Cards
+# Security Overview
 # ---------------------------------------------------
 
-col1, col2, col3, col4, col5 = st.columns(5)
+show_kpi_cards(stats)
 
-with col1:
-    st.metric("Total Events", stats["total_events"])
+# ---------------------------------------------------
+# Alerts
+# ---------------------------------------------------
 
-with col2:
-    st.metric("Successful Logins", stats["successful_logins"])
+st.divider()
 
-with col3:
-    st.metric("Failed Logins", stats["failed_logins"])
+show_alerts(
+    stats,
+    structured_events
+)
 
-with col4:
-    st.metric("Account Creations", stats["account_creations"])
+# ---------------------------------------------------
+# Investigation Summary
+# ---------------------------------------------------
 
-with col5:
-    st.metric("Privilege Escalations", stats["privilege_escalations"])
+show_summary(
+    structured_events,
+    stats
+)
 
 # ---------------------------------------------------
 # Charts
@@ -137,42 +160,59 @@ with col5:
 
 st.divider()
 
-left, right = st.columns(2)
+st.subheader("📈 Security Analytics")
 
-with left:
+col1, col2 = st.columns(2)
+
+with col1:
     show_event_distribution(structured_events)
 
-with right:
+with col2:
     show_event_timeline(structured_events)
+
+# ---------------------------------------------------
+# Security Events
+# ---------------------------------------------------
 
 st.divider()
 
+show_event_table(structured_events)
+
 # ---------------------------------------------------
-# Recent Security Events
+# Investigation Panel
 # ---------------------------------------------------
 
-st.subheader("Recent Security Events")
+st.divider()
 
-if structured_events:
+show_event_details(structured_events)
 
-    preview = []
+# ---------------------------------------------------
+# Reports
+# ---------------------------------------------------
 
-    for event in structured_events[:10]:
+st.divider()
 
-        preview.append({
+col1, col2 = st.columns(2)
 
-            "Timestamp": event["timestamp"],
-            "Event ID": event["event_id"],
-            "Username": event["username"],
-            "Computer": event["computer"]
+with col1:
+    show_export(structured_events)
 
-        })
-
-    st.dataframe(
-        preview,
-        width="stretch"
+with col2:
+    show_pdf_button(
+        stats,
+        structured_events
     )
 
-else:
+# ---------------------------------------------------
+# About
+# ---------------------------------------------------
 
-    st.info("No events found.")
+st.divider()
+
+show_about()
+
+# ---------------------------------------------------
+# Footer
+# ---------------------------------------------------
+
+show_footer()

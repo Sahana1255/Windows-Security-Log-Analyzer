@@ -1,7 +1,7 @@
 """
 Sidebar Module
 
-Creates the Streamlit sidebar.
+Professional Sidebar
 
 Author: Your Name
 Project: Windows Security Log Analyzer
@@ -28,16 +28,52 @@ def create_sidebar():
 
     with st.sidebar:
 
-        st.title("🛡 Security Log Analyzer")
+        # ---------------------------------------------------
+        # Header
+        # ---------------------------------------------------
+
+        st.markdown("# 🛡 Security Log Analyzer")
+
+        st.caption("SOC Investigation Dashboard")
 
         st.divider()
 
+        # ---------------------------------------------------
+        # Project Status
+        # ---------------------------------------------------
+
+        st.subheader("📌 Project Status")
+
+        st.success("🟢 System Ready")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.metric("Version", "1.0.0")
+
+        with col2:
+            st.metric("Status", "Ready")
+
+        st.divider()
+
+        # ---------------------------------------------------
+        # Upload Log
+        # ---------------------------------------------------
+
+        st.subheader("📂 Upload Security Log")
+
         uploaded_file = st.file_uploader(
-            "Upload Security.evtx",
+            "Choose a Windows Security.evtx file",
             type=["evtx"]
         )
 
         st.divider()
+
+        # ---------------------------------------------------
+        # Analysis Settings
+        # ---------------------------------------------------
+
+        st.subheader("⚙ Analysis Settings")
 
         max_events = st.selectbox(
             "Maximum Events",
@@ -45,15 +81,56 @@ def create_sidebar():
             index=2
         )
 
-        st.divider()
-
         analyze = st.button(
-            "▶ Analyze",
+            "🚀 Analyze Security Log",
             use_container_width=True
         )
 
         st.divider()
 
-        st.success("Ready")
+        # ---------------------------------------------------
+        # Dashboard Features
+        # ---------------------------------------------------
+
+        st.subheader("📊 Dashboard Features")
+
+        st.markdown("""
+✅ EVTX Parsing
+
+✅ Detection Rules
+
+✅ Security Alerts
+
+✅ Interactive Charts
+
+✅ Investigation Panel
+
+✅ Event Search
+
+✅ Event Filters
+
+✅ CSV Export
+
+✅ PDF Report
+""")
+
+        st.divider()
+
+        # ---------------------------------------------------
+        # About
+        # ---------------------------------------------------
+
+        st.subheader("ℹ About")
+
+        st.caption(
+            "Windows Security Log Analyzer is a SOC-focused "
+            "dashboard for investigating Windows Security Event Logs."
+        )
+
+        st.divider()
+
+        st.caption(
+            "Built with ❤️ using Python • Streamlit"
+        )
 
     return uploaded_file, max_events, analyze
