@@ -9,12 +9,20 @@ Project: Windows Security Log Analyzer
 
 from pathlib import Path
 import re
+
 import streamlit as st
 
 
-# Upload folder
-UPLOAD_FOLDER = Path("data") / "uploaded_logs"
+# ---------------------------------------------------
+# Upload Folder
+# ---------------------------------------------------
 
+UPLOAD_FOLDER = Path.cwd() / "data" / "uploaded_logs"
+
+
+# ---------------------------------------------------
+# Save Uploaded File
+# ---------------------------------------------------
 
 def save_uploaded_file(uploaded_file):
     """
@@ -22,49 +30,66 @@ def save_uploaded_file(uploaded_file):
 
     Parameters
     ----------
-    uploaded_file
+    uploaded_file : UploadedFile
         Streamlit UploadedFile object.
 
     Returns
     -------
     str
-        Path to the saved file.
+        Absolute path of the saved file.
     """
 
     try:
 
         # Create upload folder
-        UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
+        UPLOAD_FOLDER.mkdir(
+            parents=True,
+            exist_ok=True
+        )
 
-        # Original filename
-        original_name = Path(uploaded_file.name).name
+        # Safe filename
+        filename = Path(uploaded_file.name).name
 
-        # Remove invalid Windows characters
-        safe_name = re.sub(r'[<>:"/\\|?*]', "_", original_name).strip()
+        filename = re.sub(
+            r'[<>:"/\\|?*]',
+            "_",
+            filename
+        ).strip()
 
-        # Final file path
-        file_path = UPLOAD_FOLDER / safe_name
+        if not filename:
+            filename = "uploaded_log.evtx"
 
-        # Debug information
-        st.write("Original filename:", repr(original_name))
-        st.write("Sanitized filename:", repr(safe_name))
-        st.write("Saving to:", str(file_path.resolve()))
+        if not filename.lower().endswith(".evtx"):
+            filename += ".evtx"
 
-        # Read uploaded file into bytes
-        file_bytes = uploaded_file.read()
+        # Absolute path
+        file_path = (UPLOAD_FOLDER / filename).resolve()
 
-        st.write("File size:", len(file_bytes), "bytes")
+        # -----------------------------
+        # Debug Information
+        # -----------------------------
 
-        # Save file
-        with file_path.open("wb") as f:
-            f.write(file_bytes)
+        st.write("📂 Upload Folder:", UPLOAD_FOLDER)
+        st.write("📄 Filename:", filename)
+        st.write("📍 File Path:", file_path)
+        st.write("📁 Folder Exists:", UPLOAD_FOLDER.exists())
+        st.write("📏 File Size:", uploaded_file.size, "bytes")
 
-        st.success("File uploaded successfully.")
+        # -----------------------------
+        # Save File
+        # -----------------------------
+
+        with open(str(file_path), "wb") as file:
+            file.write(uploaded_file.getbuffer())
+
+        st.success("✅ File uploaded successfully.")
 
         return str(file_path)
 
-    except Exception as e:
+    except Exception as exc:
 
-        st.error(f"Upload Error: {e}")
+        st.error("❌ Upload failed.")
+
+        st.exception(exc)
 
         raise
