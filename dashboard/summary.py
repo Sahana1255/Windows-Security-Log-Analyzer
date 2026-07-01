@@ -16,7 +16,15 @@ from dashboard.severity import get_severity
 
 def show_summary(events, stats):
     """
-    Display IOC summary.
+    Display IOC investigation summary.
+
+    Parameters
+    ----------
+    events : list
+        Filtered security events.
+
+    stats : dict
+        Dashboard statistics.
     """
 
     st.subheader("📋 Investigation Summary")
@@ -27,28 +35,50 @@ def show_summary(events, stats):
 
         return
 
-    event_counter = Counter(
-        event["event_id"]
-        for event in events
-    )
+    with st.spinner(
+        "🧠 Generating investigation summary..."
+    ):
 
-    common_event = event_counter.most_common(1)[0][0]
+        # ---------------------------------------------------
+        # Most Common Event
+        # ---------------------------------------------------
 
-    usernames = [
-        event["username"]
-        for event in events
-        if event["username"]
-    ]
+        event_counter = Counter(
+            event["event_id"]
+            for event in events
+        )
 
-    if usernames:
+        common_event = event_counter.most_common(1)[0][0]
 
-        top_user = Counter(usernames).most_common(1)[0][0]
+        # ---------------------------------------------------
+        # Most Active User
+        # ---------------------------------------------------
 
-    else:
+        usernames = [
+            event["username"]
+            for event in events
+            if event["username"]
+        ]
 
-        top_user = "N/A"
+        if usernames:
 
-    risk = get_severity(common_event)
+            top_user = Counter(
+                usernames
+            ).most_common(1)[0][0]
+
+        else:
+
+            top_user = "N/A"
+
+        # ---------------------------------------------------
+        # Overall Risk
+        # ---------------------------------------------------
+
+        risk = get_severity(common_event)
+
+    # ---------------------------------------------------
+    # Display Summary
+    # ---------------------------------------------------
 
     col1, col2, col3 = st.columns(3)
 

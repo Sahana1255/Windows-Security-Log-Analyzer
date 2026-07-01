@@ -13,6 +13,16 @@ import streamlit as st
 def search_events(events):
     """
     Search across all event fields.
+
+    Parameters
+    ----------
+    events : list
+        Structured security events.
+
+    Returns
+    -------
+    list
+        Filtered events matching the search query.
     """
 
     if not events:
@@ -28,20 +38,24 @@ def search_events(events):
 
     query = query.lower()
 
-    filtered = []
+    with st.spinner(
+        "🔎 Searching matching security events..."
+    ):
 
-    for event in events:
+        filtered = []
 
-        values = [
-            str(event["event_id"]),
-            str(event["username"]),
-            str(event["computer"]),
-            str(event["timestamp"])
-        ]
+        for event in events:
 
-        searchable = " ".join(values).lower()
+            values = [
+                str(event["event_id"]),
+                str(event["username"]),
+                str(event["computer"]),
+                str(event["timestamp"])
+            ]
 
-        if query in searchable:
-            filtered.append(event)
+            searchable = " ".join(values).lower()
+
+            if query in searchable:
+                filtered.append(event)
 
     return filtered

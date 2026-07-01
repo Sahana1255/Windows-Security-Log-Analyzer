@@ -36,10 +36,26 @@ def show_pdf_button(stats, events):
         use_container_width=True
     ):
 
-        pdf = generate_pdf(
-            stats,
-            events
+        # ---------------------------------------------------
+        # Generate PDF
+        # ---------------------------------------------------
+
+        with st.spinner(
+            "📄 Generating professional investigation report..."
+        ):
+
+            pdf = generate_pdf(
+                stats,
+                events
+            )
+
+        st.success(
+            "✅ PDF report generated successfully."
         )
+
+        # ---------------------------------------------------
+        # Download Button
+        # ---------------------------------------------------
 
         with open(pdf, "rb") as file:
 

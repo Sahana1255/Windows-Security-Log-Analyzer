@@ -32,9 +32,9 @@ def filter_events(events):
 
     col1, col2, col3 = st.columns(3)
 
-    # -------------------------
+    # ---------------------------------------------------
     # Event IDs
-    # -------------------------
+    # ---------------------------------------------------
 
     event_ids = sorted(
         set(event["event_id"] for event in events)
@@ -45,9 +45,9 @@ def filter_events(events):
         ["All"] + event_ids
     )
 
-    # -------------------------
+    # ---------------------------------------------------
     # Usernames
-    # -------------------------
+    # ---------------------------------------------------
 
     usernames = sorted(
         set(
@@ -62,9 +62,9 @@ def filter_events(events):
         ["All"] + usernames
     )
 
-    # -------------------------
+    # ---------------------------------------------------
     # Computer Names
-    # -------------------------
+    # ---------------------------------------------------
 
     computers = sorted(
         set(
@@ -79,27 +79,35 @@ def filter_events(events):
         ["All"] + computers
     )
 
-    filtered = events
+    # ---------------------------------------------------
+    # Apply Filters
+    # ---------------------------------------------------
 
-    if selected_event != "All":
-        filtered = [
-            event
-            for event in filtered
-            if event["event_id"] == selected_event
-        ]
+    with st.spinner(
+        "🛡 Applying investigation filters..."
+    ):
 
-    if selected_user != "All":
-        filtered = [
-            event
-            for event in filtered
-            if event["username"] == selected_user
-        ]
+        filtered = events
 
-    if selected_computer != "All":
-        filtered = [
-            event
-            for event in filtered
-            if event["computer"] == selected_computer
-        ]
+        if selected_event != "All":
+            filtered = [
+                event
+                for event in filtered
+                if event["event_id"] == selected_event
+            ]
+
+        if selected_user != "All":
+            filtered = [
+                event
+                for event in filtered
+                if event["username"] == selected_user
+            ]
+
+        if selected_computer != "All":
+            filtered = [
+                event
+                for event in filtered
+                if event["computer"] == selected_computer
+            ]
 
     return filtered

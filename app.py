@@ -83,14 +83,34 @@ if analyze and uploaded_file is not None:
 # Read EVTX
 # ---------------------------------------------------
 
+# ---------------------------------------------------
+# Read EVTX
+# ---------------------------------------------------
+
 if analyze:
 
-    with st.spinner("Analyzing Windows Security Log..."):
+    with st.spinner(
+        "🔍 Parsing EVTX file and analyzing security events..."
+    ):
 
         xml_events = read_evtx(
             file_path,
             max_events=max_events
         )
+
+        with st.spinner(
+            "📊 Loading dashboard and calculating statistics..."
+        ):
+
+            structured_events = extract_events(xml_events)
+
+            structured_events = search_events(
+                filter_events(structured_events)
+            )
+
+            stats = get_statistics(structured_events)
+
+    st.success("✅ Analysis Complete")
 
 else:
 
@@ -99,20 +119,13 @@ else:
         max_events=max_events
     )
 
-structured_events = extract_events(xml_events)
+    structured_events = extract_events(xml_events)
 
-# ---------------------------------------------------
-# Investigation Tools
-# ---------------------------------------------------
+    structured_events = search_events(
+        filter_events(structured_events)
+    )
 
-structured_events = search_events(
-    filter_events(structured_events)
-)
-
-stats = get_statistics(structured_events)
-
-if analyze:
-    st.success("Analysis Complete")
+    stats = get_statistics(structured_events)
 
 # ---------------------------------------------------
 # Dashboard Header
@@ -184,8 +197,10 @@ show_event_table(structured_events)
 
 st.divider()
 
-show_event_details(structured_events)
-
+with st.spinner(
+    "📑 Loading investigation details..."
+):
+    show_event_details(structured_events)
 # ---------------------------------------------------
 # Reports
 # ---------------------------------------------------

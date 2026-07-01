@@ -47,7 +47,7 @@ def save_uploaded_file(uploaded_file):
             exist_ok=True
         )
 
-        # Safe filename
+        # Create a safe filename
         filename = Path(uploaded_file.name).name
 
         filename = re.sub(
@@ -62,33 +62,27 @@ def save_uploaded_file(uploaded_file):
         if not filename.lower().endswith(".evtx"):
             filename += ".evtx"
 
-        # Absolute path
+        # Final absolute path
         file_path = (UPLOAD_FOLDER / filename).resolve()
 
-        # -----------------------------
-        # Debug Information
-        # -----------------------------
+        # ---------------------------------------------------
+        # Upload File
+        # ---------------------------------------------------
 
-        st.write("📂 Upload Folder:", UPLOAD_FOLDER)
-        st.write("📄 Filename:", filename)
-        st.write("📍 File Path:", file_path)
-        st.write("📁 Folder Exists:", UPLOAD_FOLDER.exists())
-        st.write("📏 File Size:", uploaded_file.size, "bytes")
+        with st.spinner(
+            "📤 Uploading Windows Security Event Log..."
+        ):
 
-        # -----------------------------
-        # Save File
-        # -----------------------------
+            with open(file_path, "wb") as file:
+                file.write(uploaded_file.getbuffer())
 
-        with open(str(file_path), "wb") as file:
-            file.write(uploaded_file.getbuffer())
-
-        st.success("✅ File uploaded successfully.")
+        st.success("✅ Security.evtx uploaded successfully.")
 
         return str(file_path)
 
     except Exception as exc:
 
-        st.error("❌ Upload failed.")
+        st.error("❌ Failed to upload Security.evtx.")
 
         st.exception(exc)
 

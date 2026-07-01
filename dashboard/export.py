@@ -15,38 +15,72 @@ from dashboard.severity import get_severity
 
 def show_export(events):
     """
-    CSV Export Button.
+    Display CSV export button.
+
+    Parameters
+    ----------
+    events : list
+        Filtered security events.
     """
+
+    st.subheader("📥 Export Investigation")
+
+    st.caption(
+        "Download the filtered investigation results as a CSV report."
+    )
 
     if not events:
 
+        st.info("No security events available for export.")
+
         return
 
-    rows = []
+    # ---------------------------------------------------
+    # Prepare CSV
+    # ---------------------------------------------------
 
-    for event in events:
+    with st.spinner(
+        "📥 Preparing investigation CSV report..."
+    ):
 
-        rows.append({
+        rows = []
 
-            "Timestamp": event["timestamp"],
-            "Event ID": event["event_id"],
-            "Severity": get_severity(
-                event["event_id"]
-            ),
-            "Username": event["username"],
-            "Computer": event["computer"]
+        for event in events:
 
-        })
+            rows.append({
 
-    df = pd.DataFrame(rows)
+                "Timestamp": event["timestamp"],
+                "Event ID": event["event_id"],
+                "Severity": get_severity(
+                    event["event_id"]
+                ),
+                "Username": event["username"],
+                "Computer": event["computer"]
+
+            })
+
+        df = pd.DataFrame(rows)
+
+        csv = df.to_csv(index=False)
+
+    st.success(
+        "✅ CSV report is ready for download."
+    )
+
+    # ---------------------------------------------------
+    # Download Button
+    # ---------------------------------------------------
 
     st.download_button(
 
-        "⬇ Download Investigation CSV",
+        label="⬇ Download Investigation CSV",
 
-        data=df.to_csv(index=False),
+        data=csv,
 
         file_name="investigation_report.csv",
 
-        mime="text/csv"
+        mime="text/csv",
+
+        use_container_width=True
+
     )
